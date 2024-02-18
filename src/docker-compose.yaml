@@ -1,0 +1,93 @@
+version: "3.9"
+
+volumes:
+  grafana: null
+  prometheus: null
+
+networks:
+  notification-internal:
+    driver: bridge
+
+services:
+  postgres:
+    container_name: notification-postgres
+    image: postgres:latest
+    ports:
+      - 8983:5432
+    restart: always
+    environment:
+      - POSTGRES_USER=notification
+      - POSTGRES_PASSWORD=notification
+      - POSTGRES_DB=notification
+    networks:
+      - notification-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notification -d notification"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  grafana-agent:
+    image: grafana/agent:main
+    restart: unless-stopped
+    container_name: agent
+    volumes:
+      - ./grafana/config/config.river:/etc/agent/config.river
+    environment:
+      - AGENT_MODE=flow
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/agent/config.river
+    ports:
+      - 12345:12345
+      - 4317:4317
+    networks:
+      - notification-internal
+  grafana:
+    image: grafana/grafana:main
+    restart: unless-stopped
+    container_name: grafana
+    environment:
+      - GF_SERVER_DOMAIN=grafana.dmkk3r.de
+      - GF_FEATURE_TOGGLES_ENABLE=traceToMetrics
+    volumes:
+      - grafana:/var/lib/grafana
+    ports:
+      - 3002:3000
+    networks:
+      - notification-internal
+  loki:
+    image: grafana/loki:main
+    restart: unless-stopped
+    container_name: loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - 3100:3100
+    networks:
+      - notification-internal
+  tempo:
+    image: grafana/tempo:latest
+    restart: unless-stopped
+    container_name: tempo
+    command:
+      - -storage.trace.backend=local
+      - -storage.trace.local.path=/tmp/tempo/traces
+      - -storage.trace.wal.path=/tmp/tempo/wal
+      - -auth.enabled=false
+      - -server.http-listen-port=3200
+    ports:
+      - 3200:3200
+      - 4319:4317
+    networks:
+      - notification-internal
+  prometheus:
+    image: prom/prometheus
+    restart: unless-stopped
+    container_name: prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
+    ports:
+      - 9090:9090
+    volumes:
+      - ./grafana/prometheus:/etc/prometheus
+      - prometheus:/prometheus
+    networks:
+      - notification-internal
