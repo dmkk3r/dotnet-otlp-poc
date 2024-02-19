@@ -38,9 +38,14 @@ public static class ServiceCollectionExtension {
 
                 meterProviderBuilder.AddOtlpExporter(exporterOptions => {
                     var otlpEndpoint = configuration["OTLP_ENDPOINT"];
-
+                    
                     if (string.IsNullOrEmpty(otlpEndpoint)) return;
 
+                    
+                    exporterOptions.TimeoutMilliseconds = 1000;
+                    exporterOptions.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 10000;
+                    exporterOptions.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 1000;
+                    
                     exporterOptions.Endpoint = new Uri(otlpEndpoint);
                     exporterOptions.Protocol = OtlpExportProtocol.Grpc;
                 });

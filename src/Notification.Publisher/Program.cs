@@ -19,7 +19,7 @@ builder.Services.AddSingleton(redisConnectionMultiplexer);
 builder.Services.AddStackExchangeRedisCache(options => options.ConnectionMultiplexerFactory = () => Task.FromResult(redisConnectionMultiplexer));
 
 builder.Services.AddHostedService<PublisherHostedServices>();
-builder.Services.AddScoped<NotificationPublisher>();
+builder.Services.AddSingleton<NotificationPublisher>();
 
 var app = builder.Build();
 
