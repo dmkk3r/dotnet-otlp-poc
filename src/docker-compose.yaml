@@ -3,6 +3,7 @@ version: "3.9"
 volumes:
   grafana: null
   prometheus: null
+  redis: null
 
 networks:
   notification-internal:
@@ -26,10 +27,18 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  redis:
+    image: redis:latest
+    container_name: notification-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data
+    restart: always
   grafana-agent:
     image: grafana/agent:main
     restart: unless-stopped
-    container_name: agent
+    container_name: grafana-agent
     volumes:
       - ./grafana/config/config.river:/etc/agent/config.river
     environment:
