@@ -2,28 +2,18 @@
 using System.Text.Json;
 using Notification.Core.Models.Messages;
 
-namespace Notification.Publisher.Services
-{
-    public class PublisherHostedServices : BackgroundService
-    {
-        private readonly IConnectionMultiplexer _connectionMultiplexer;
+namespace Notification.Publisher.Services;
 
-        public PublisherHostedServices(IConnectionMultiplexer connectionMultiplexer)
-        {
-            _connectionMultiplexer = connectionMultiplexer;
-        }
+public class PublisherHostedServices(IConnectionMultiplexer connectionMultiplexer, NotificationPublisher notificationPublisher) : BackgroundService {
+    protected override Task ExecuteAsync(CancellationToken stoppingToken) {
+        var subscriber = connectionMultiplexer.GetSubscriber();
+        subscriber.Subscribe("notifications", RedisNotificationHandler);
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            var subscriber = _connectionMultiplexer.GetSubscriber();
-            subscriber.Subscribe("notifications", (channel, message) =>
-            {
-                var notification = JsonSerializer.Deserialize<PublishNotification>(message);
-                // Hier können Sie den Code hinzufügen, um mit der empfangenen Nachricht zu interagieren
-            });
+        return Task.CompletedTask;
 
-            // Da das Abonnement asynchron ist, geben wir hier einfach ein abgeschlossenes Task zurück
-            return Task.CompletedTask;
+        async void RedisNotificationHandler(RedisChannel channel, RedisValue message) {
+            var notification = JsonSerializer.Deserialize<PublishNotification>(message);
+            await notificationPublisher.PublishNotificationAsync(notification);
         }
     }
 }

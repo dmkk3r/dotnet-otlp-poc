@@ -14,25 +14,13 @@ var resourceBuilder = ResourceBuilder
 builder.Services.AddOpenTelemetryConfig(resourceBuilder, builder.Configuration);
 builder.Logging.AddOpenTelemetryConfig(resourceBuilder, builder.Configuration);
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 IConnectionMultiplexer redisConnectionMultiplexer = await ConnectionMultiplexer.ConnectAsync("localhost");
 builder.Services.AddSingleton(redisConnectionMultiplexer);
 builder.Services.AddStackExchangeRedisCache(options => options.ConnectionMultiplexerFactory = () => Task.FromResult(redisConnectionMultiplexer));
 
 builder.Services.AddHostedService<PublisherHostedServices>();
+builder.Services.AddScoped<NotificationPublisher>();
 
 var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.MapGet("/weatherforecast", () => { })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
 
 app.Run();

@@ -4,7 +4,7 @@ using Notification.Store.Entities;
 
 namespace Notification.Store.Services;
 
-public class NotificationStoreService(NotificationStoreContext notificationStoreContext) {
+public class NotificationStoreService(NotificationStoreContext notificationStoreContext, ILogger<NotificationStoreService> logger) {
     public async Task<StoreNotificationResponse> StoreNotificationAsync(StoreNotificationRequest request) {
         var notification = new NotificationEntity()
         {
@@ -16,6 +16,8 @@ public class NotificationStoreService(NotificationStoreContext notificationStore
 
         notificationStoreContext.Notifications.Add(notification);
         await notificationStoreContext.SaveChangesAsync();
+
+        logger.LogInformation("Notification stored successfully. Id: {NotificationId}", notification.Id);
 
         return new StoreNotificationResponse
         {

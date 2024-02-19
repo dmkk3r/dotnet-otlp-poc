@@ -18,6 +18,7 @@ public static class ServiceCollectionExtension {
                     .AddHttpClientInstrumentation()
                     .AddEntityFrameworkCoreInstrumentation()
                     .AddRedisInstrumentation()
+                    .AddSource("Notification.Publisher.Services.NotificationPublisher")
                     .AddOtlpExporter(exporterOptions => {
                         var otlpEndpoint = configuration["OTLP_ENDPOINT"];
 
@@ -32,7 +33,8 @@ public static class ServiceCollectionExtension {
                 meterProviderBuilder.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
-                    .AddProcessInstrumentation();
+                    .AddProcessInstrumentation()
+                    .AddMeter("Notification.Api.NotificationMeter");
 
                 meterProviderBuilder.AddOtlpExporter(exporterOptions => {
                     var otlpEndpoint = configuration["OTLP_ENDPOINT"];

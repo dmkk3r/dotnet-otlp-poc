@@ -16,6 +16,7 @@ builder.Services.AddOpenTelemetryConfig(resourceBuilder, builder.Configuration);
 builder.Logging.AddOpenTelemetryConfig(resourceBuilder, builder.Configuration);
 
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddSingleton<NotificationMetrics>();
 
 builder.Services.AddHttpClient("notification-store", c => {
     c.BaseAddress = new Uri("http://localhost:5090");

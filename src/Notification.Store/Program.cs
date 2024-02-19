@@ -32,9 +32,9 @@ if (app.Environment.IsDevelopment())
 
 var notificationGroup = app.MapGroup("/store");
 
-notificationGroup.MapPost("/notification", async (StoreNotificationRequest request, NotificationStoreService notificationStoreService) => {
-        await notificationStoreService.StoreNotificationAsync(request);
-    })
+notificationGroup.MapPost("/notification", async (StoreNotificationRequest request, NotificationStoreService notificationStoreService) =>
+        await notificationStoreService.StoreNotificationAsync(request)
+    )
     .WithName("StoreNotification")
     .WithOpenApi();
 
